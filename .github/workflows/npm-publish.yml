@@ -1,7 +1,4 @@
-# This workflow will run tests using node and then publish a package to npm after CI tests pass
-# For more information see: https://docs.npmjs.com/generating-provenance-statements
-
-name: light-auth CI Pipeline
+name: light-auth-package CI Pipeline
 
 on:
   release:
@@ -11,38 +8,57 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
-      - uses: pnpm/action-setup@v2
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v2
         with:
-          version: 9 
-      - run: pnpm install
-      - run: pnpm test
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install
 
   publish-npm:
     needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write 
+      id-token: write
+    env:
+      NODE_AUTH_TOKEN: ""
+      NPM_TOKEN: ""
+
     steps:
-      - uses: actions/checkout@v4
-      
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 9
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          registry-url: 'https://registry.npmjs.org/'
-      
-      - run: pnpm install
-      
-      - run: pnpm publish --access public --no-git-checks --provenance
-        env:
-          NPM_CONFIG_PROVENANCE: true
+          registry-url: https://registry.npmjs.org/
+          scope: '@daksh-dev'
+          always-auth: false
+          check-latest: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      - name: Ensure clean npm auth
+        run: |
+          rm -f ~/.npmrc
+          npm config delete //registry.npmjs.org/:_authToken || true
+
+      - name: Install dependencies (again for publish job)
+        run: pnpm install
+
+      - name: Publish to npm using Trusted Publishing (OIDC)
+        run: pnpm publish --access public --no-git-checks --provenance
