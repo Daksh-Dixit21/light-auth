@@ -1,0 +1,50 @@
+{
+  "name": "@daksh-dev/light-auth",
+  "version": "1.0.1",
+  "description": "A lightweight and flexible authentication package for Express.js (JWT & Sessions).",
+  "main": "setupAuth.js",
+  "types": "index.d.ts",
+  "type": "module",
+  "files": [
+    "setupAuth.js",
+    "modules/"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Daksh-Dixit21/light-auth.git"
+  },
+  "keywords": [
+    "nodejs",
+    "express",
+    "authentication",
+    "auth",
+    "jwt",
+    "session",
+    "security",
+    "middleware",
+    "javascript"
+  ],
+  "author": "Daksh Dixit",
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@10.12.3",
+  "peerDependencies": {
+    "express": "^4.19.0",
+    "express-session": "^1.18.0",
+    "helmet": "^7.1.0",
+    "mongoose": "^8.3.0"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "debug": "^4.3.4",
+    "dotenv": "^16.4.5",
+    "express-rate-limit": "^7.2.0",
+    "express-validator": "^7.0.1",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "helmet": "^7.1.0",
+    "mongoose": "^8.3.2"
+  }
+}
