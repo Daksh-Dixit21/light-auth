@@ -2,9 +2,9 @@
 
 [![NPM Version](https://img.shields.io/npm/v/@daksh-dev/light-auth.svg)](https://www.npmjs.com/package/@daksh-dev/light-auth)
 [![License](https://img.shields.io/npm/l/@daksh-dev/light-auth.svg)](https://github.com/Daksh-Dixit21/light-auth/blob/main/LICENSE)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/Daksh-Dixit21/light-auth/ci.yml)](https://github.com/Daksh-Dixit21/light-auth/actions)
-[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/dakshdixit)
+![Code size](https://img.shields.io/github/languages/code-size/Daksh-Dixit21/light-auth)
 [![Languages](https://img.shields.io/github/languages/top/Daksh-Dixit21/light-auth)](https://github.com/Daksh-Dixit21/light-auth)
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/dakshdixit)
 
 A lightweight, flexible, and secure authentication package for Express.js applications. It supports both session-based and JWT-based authentication, email verification, password reset, and role-based access control.
 
