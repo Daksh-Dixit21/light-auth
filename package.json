@@ -7,7 +7,8 @@
   "type": "module",
   "files": [
     "setupAuth.js",
-    "modules/"
+    "modules/",
+    "index.d.ts"
   ],
   "repository": {
     "type": "git",
@@ -26,6 +27,9 @@
   ],
   "author": "Daksh Dixit",
   "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "packageManager": "pnpm@10.12.3",
   "peerDependencies": {
     "express": "^4.19.0",
