@@ -1,6 +1,6 @@
 {
   "name": "@daksh-dev/light-auth",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A lightweight and flexible authentication package for Express.js (JWT & Sessions).",
   "main": "setupAuth.js",
   "types": "index.d.ts",
