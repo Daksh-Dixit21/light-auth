@@ -30,9 +30,6 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    env:
-      NODE_AUTH_TOKEN: ""
-      NPM_TOKEN: ""
 
     steps:
       - name: Checkout code
@@ -52,13 +49,8 @@ jobs:
         with:
           version: 9
 
-      - name: Ensure clean npm auth
-        run: |
-          rm -f ~/.npmrc
-          npm config delete //registry.npmjs.org/:_authToken || true
-
-      - name: Install dependencies (again for publish job)
+      - name: Install dependencies
         run: pnpm install
 
-      - name: Publish to npm using Trusted Publishing (OIDC)
+      - name: Publish to npm using Trusted Publishing
         run: pnpm publish --access public --no-git-checks --provenance
