@@ -1,0 +1,14 @@
+# Ignore everything by default if using 'files' in package.json, 
+# but these are explicitly excluded just in case:
+website/
+test-app/
+.prettierrc
+eslint.config.js
+CONTRIBUTING.md
+CODE_OF_CONDUCT.md
+SECURITY.md
+CHANGELOG.md
+node_modules/
+.git/
+.github/
+pnpm-lock.yaml

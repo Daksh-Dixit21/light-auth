@@ -98,6 +98,17 @@ export interface AuthConfig {
      * JWT configuration (if useSession is false).
      */
     jwtConfig?: JwtConfig;
+
+    /**
+     * Security configuration.
+     */
+    security?: {
+        /**
+         * Whether to automatically enable helmet() middleware.
+         * @default true
+         */
+        helmet?: boolean;
+    };
     
     /**
      * Custom User Mongoose model. If not provided, one will be created.

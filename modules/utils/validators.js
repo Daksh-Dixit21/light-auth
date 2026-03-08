@@ -26,7 +26,7 @@ export function validatePassword(policy = {}) {
     if (requireUppercase && !/[A-Z]/.test(password)) return "Password must contain at least one uppercase letter.";
     if (requireLowercase && !/[a-z]/.test(password)) return "Password must contain at least one lowercase letter.";
     if (requireNumbers && !/[0-9]/.test(password)) return "Password must contain at least one number.";
-    if (requireSymbols && !/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) return "Password must contain at least one symbol.";
+    if (requireSymbols && !/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) return "Password must contain at least one symbol.";
 
     return null;
   };

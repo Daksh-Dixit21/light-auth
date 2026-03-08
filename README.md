@@ -38,6 +38,7 @@ For full documentation, guides, and API reference, visit our [website](https://l
     setupAuth(app, {
       db: mongoose.connection,
       jwtSecret: 'YOUR_SUPER_SECRET_KEY_THAT_IS_LONG_AND_COMPLEX',
+      security: { helmet: true }, // Automatically sets up helmet() middleware
       // Add other configurations here
     });
 
@@ -95,6 +96,21 @@ These are the core authentication routes, available by default under the `/auth`
     *   **Body**: `{ "email": "user@example.com", "password": "yourpassword" }`
 *   **`POST /logout`**: Logs a user out. For JWT, this is a client-side action, but the route is provided for consistency.
 
+### Custom Registration Fields
+
+The `/register` route now supports extra fields automatically. Any additional data sent in the request body (e.g., `name`, `age`, `username`) will be saved to the database, provided these fields are defined in your Mongoose User schema.
+
+Example:
+```json
+{
+  "email": "user@example.com",
+  "password": "password123",
+  "name": "John Doe",
+  "username": "johndoe"
+}
+```
+*Note: Protected fields like `verified` or internal OTP fields are automatically filtered out for security.*
+
 ## Advanced Routes
 
 These routes provide email verification and password reset functionality.
@@ -118,7 +134,7 @@ setupAuth(app, {
 
 *   `db`: **(Required)** Your Mongoose database connection.
 *   `jwtSecret`: **(Required)** A strong, secret key for signing JWTs.
-*   `User`: **(Required)** Either your custom Mongoose User model or the string `'default'` to auto-generate one.
+*   `User`: **(Required)** Set to your custom Mongoose User model OR the string `'default'` to have the package auto-generate a `User.js` at `models/User.js`.
 *   `route`: Base route for auth endpoints.
 *   `useSession`: Set to `true` to enable session-based authentication.
 *   `roles`: An array of allowed user roles (e.g., `['user', 'admin']`).
@@ -246,6 +262,7 @@ setupAuth(app, {
 *   **Stateful**: The server stores user session data.
 *   **Configuration**: Requires `useSession: true` and a configured session store for production environments.
 *   **Cookie-Based**: Uses cookies to track user sessions.
+*   **Important**: When using `fetch` or other client libraries, ensure you set `credentials: 'include'` (or equivalent) to send cookies with requests.
 
 ## Hooks and Advanced Features
 

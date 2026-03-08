@@ -1,10 +1,18 @@
 {
   "name": "@daksh-dev/light-auth",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A lightweight and flexible authentication package for Express.js (JWT & Sessions).",
   "main": "setupAuth.js",
   "types": "index.d.ts",
   "type": "module",
+  "scripts": {
+    "test": "cd test-app && pnpm test:all",
+    "test:jwt": "cd test-app && pnpm test:jwt",
+    "test:session": "cd test-app && pnpm test:session",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "prepare": "pnpm run lint"
+  },
   "files": [
     "setupAuth.js",
     "modules/",
@@ -46,9 +54,13 @@
     "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^9.0.0",
     "express": "^4.19.2",
     "express-session": "^1.18.0",
+    "globals": "^17.4.0",
     "helmet": "^7.1.0",
-    "mongoose": "^8.3.2"
+    "mongoose": "^8.3.2",
+    "prettier": "^3.2.5"
   }
 }

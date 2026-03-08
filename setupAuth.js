@@ -52,6 +52,7 @@ export async function setupAuth(app, config) {
       store: null
     },
     jwtConfig: { expiresIn: "1h" },
+    security: { helmet: true },
     User: null,
     emailVerification: null,
     forgotPassword: null,
@@ -88,6 +89,10 @@ export async function setupAuth(app, config) {
       ...defaults.jwtConfig,
       ...(config.jwtConfig || {})
     },
+    security: {
+      ...defaults.security,
+      ...(config.security || {})
+    },
     hooks: {
       ...defaults.hooks,
       ...(config.hooks || {})
@@ -105,6 +110,7 @@ export async function setupAuth(app, config) {
     rateLimiting,
     sessionConfig,
     jwtConfig,
+    security,
     emailVerification,
     forgotPassword
   } = merged;
@@ -116,6 +122,7 @@ export async function setupAuth(app, config) {
   console.log(`✅ Auth Mode:     ${useSession ? "Session-based" : "JWT-based"}`);
   console.log(`✅ Base Route:    ${route}`);
   console.log(`✅ Roles:         ${roles.join(", ")}`);
+  if (security?.helmet) console.log(`✅ Security:      Helmet Enabled`);
   if (emailVerification?.enabled) console.log(`✅ Email Verify:  Enabled`);
   if (forgotPassword?.enabled) console.log(`✅ Forgot Pass:   Enabled`);
   console.log("==================================================\n");
@@ -133,14 +140,29 @@ export async function setupAuth(app, config) {
     throw error;
   }
 
-  // 5. Create User model if not provided
-  const UserModel = merged.User || (await createUserModel(merged, roles, db));
+  if (!merged.User) {
+    const error = new Error("[setupAuth] ❌ User model is required. Pass a Mongoose model or set User: 'default' to auto-generate one.");
+    await callHook(merged.hooks?.onError, { type: "setup", error });
+    throw error;
+  }
+
+  // 5. Create or load User model
+  const UserModel = merged.User === "default"
+    ? await createUserModel(merged, roles, db)
+    : merged.User;
 
   // 6. Register security middleware
-  app.use(helmet());
+  if (security?.helmet) {
+    app.use(helmet());
+  }
 
   // 7. Only initialize session middleware once per app
   if (useSession && !app._sessionInitialized) {
+    if (process.env.NODE_ENV === "production" && !sessionConfig.store) {
+      console.warn(
+        "[light-auth] ⚠️ WARNING: No session store provided in production. Defaulting to MemoryStore, which will not persist across restarts or work in distributed environments."
+      );
+    }
     setupSession(app, jwtSecret, sessionConfig);
     app._sessionInitialized = true;
   }

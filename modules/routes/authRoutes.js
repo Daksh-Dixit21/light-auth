@@ -16,7 +16,18 @@ export function registerRoute(router, UserModel, roles, validatePassword, rateLi
         return res.status(400).json({ error: "Missing request body." });
       }
 
-      const { email, password, role = "user" } = req.body;
+      const {
+        email,
+        password,
+        role = "user",
+        // Protected fields that shouldn't be set via register
+        _verified,
+        _emailOtp,
+        _emailOtpExpires,
+        _resetOtp,
+        _resetOtpExpires,
+        ...extra
+      } = req.body;
 
       if (!email || !validateEmail(email)) {
         return res.status(400).json({ error: "Invalid email format." });
@@ -35,7 +46,12 @@ export function registerRoute(router, UserModel, roles, validatePassword, rateLi
       if (exists) return res.status(409).json({ error: "User already exists." });
 
       const hashed = await bcrypt.hash(password, 12);
-      const user = await UserModel.create({ email, password: hashed, role });
+      const user = await UserModel.create({
+        ...extra,
+        email,
+        password: hashed,
+        role
+      });
 
       await callHook(config.hooks?.onRegister, user);
 
@@ -110,9 +126,14 @@ export function loginRoute(router, UserModel, jwtSecret, jwtConfig, useSession, 
 
 export function logoutRoute(router, useSession, config = {}) {
   router.post("/logout", async (req, res) => {
-    const user = useSession ? req.session?.user : null;
+    // 1. Capture user from session OR from req.user (attached by authenticate middleware)
+    const user = useSession ? req.session?.user : (req.user || null);
 
     if (useSession) {
+      if (!req.session) {
+        return res.status(400).json({ error: "No active session found." });
+      }
+
       req.session.destroy(async (err) => {
         if (err) {
           console.error("[LOGOUT ERROR]", err);
@@ -128,8 +149,9 @@ export function logoutRoute(router, useSession, config = {}) {
         return res.json({ message: "Logged out successfully.", user: null });
       });
     } else {
+      // For JWT, we just call the hook and return success
       await callHook(config.hooks?.onLogout, user);
-      return res.json({ message: "Client should clear JWT manually.", user: null });
+      return res.json({ message: "Logged out successfully (Client should clear JWT manually).", user: null });
     }
   });
 }
