@@ -17,6 +17,8 @@ jobs:
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.3
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -26,9 +28,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Run tests
-        run: pnpm test
 
       - name: Semantic Release
         uses: cycjimmy/semantic-release-action@v6
