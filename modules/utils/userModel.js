@@ -26,7 +26,7 @@ export async function createUserModel(config, roles, db) {
     // 2.2 Generate default User.js if missing
     if (!fs.existsSync(userModelPath)) {
       if (process.env.NODE_ENV === "production") {
-        throw new Error("[light-auth] ❌ User model not found. In production, 'models/User.js' must exist when using 'default'.");
+        throw new Error("[light-auth] User model not found. In production, 'models/User.js' must exist when using 'default'.");
       }
 
       fs.mkdirSync(path.dirname(userModelPath), { recursive: true });
@@ -49,9 +49,9 @@ export default mongoose.models.User || mongoose.model('User', userSchema);
 `;
 
       fs.writeFileSync(userModelPath, template);
-      console.log(`[light-auth] ✅ Created default User model at: ${userModelPath}`);
+      console.log(`[light-auth] Created default User model at: ${userModelPath}`);
     } else {
-      console.log(`[light-auth] ℹ️ Using existing User model at: ${userModelPath}`);
+      console.log(`[light-auth] Using existing User model at: ${userModelPath}`);
     }
 
     // 2.3 Import and return User model
@@ -61,7 +61,7 @@ export default mongoose.models.User || mongoose.model('User', userSchema);
 
   // 3. Case: Missing/Invalid config -> ERROR
   throw new Error(
-    "[light-auth] ❌ No User model provided. You must either:\n" +
+    "[light-auth] No User model provided. You must either:\n" +
     "  1. Pass a Mongoose model instance to 'User' in config.\n" +
     "  2. Set 'User' to 'default' to auto-generate/load a model at 'models/User.js'."
   );

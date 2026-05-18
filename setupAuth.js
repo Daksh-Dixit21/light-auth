@@ -15,6 +15,8 @@ import {
 } from "./modules/middleware/authMiddleware.js";
 import { setupEmailRoutes } from "./modules/email/routes/emailRoutes.js";
 import { defaultSendMail } from "./modules/email/services/emailService.js";
+import { setupOAuthRoutes } from "./modules/oauth/oauthRoutes.js";
+import { setupSwaggerDocs } from "./modules/docs/swagger.js";
 
 
 /**
@@ -56,7 +58,10 @@ export async function setupAuth(app, config) {
     User: null,
     emailVerification: null,
     forgotPassword: null,
-    hooks: {}
+    hooks: {},
+    hashing: { algorithm: "bcrypt" },
+    oauth: { providers: {} },
+    enableDocs: process.env.NODE_ENV !== "production"
   };
 
   // 2. Deep-merge user config with defaults
@@ -96,7 +101,16 @@ export async function setupAuth(app, config) {
     hooks: {
       ...defaults.hooks,
       ...(config.hooks || {})
-    }
+    },
+    hashing: {
+      ...defaults.hashing,
+      ...(config.hashing || {})
+    },
+    oauth: {
+      ...defaults.oauth,
+      ...(config.oauth || {})
+    },
+    enableDocs: config.enableDocs !== undefined ? config.enableDocs : defaults.enableDocs
   };
 
   // 3. Destructure merged config
@@ -112,36 +126,44 @@ export async function setupAuth(app, config) {
     jwtConfig,
     security,
     emailVerification,
-    forgotPassword
+    forgotPassword,
+    hashing,
+    oauth,
+    enableDocs
   } = merged;
 
   // 3.1 Startup Banner & Feature Logging
   console.log("\n==================================================");
-  console.log("🚀 Initializing Light-Auth...");
+  console.log("Initializing Light-Auth...");
   console.log("==================================================");
-  console.log(`✅ Auth Mode:     ${useSession ? "Session-based" : "JWT-based"}`);
-  console.log(`✅ Base Route:    ${route}`);
-  console.log(`✅ Roles:         ${roles.join(", ")}`);
-  if (security?.helmet) console.log(`✅ Security:      Helmet Enabled`);
-  if (emailVerification?.enabled) console.log(`✅ Email Verify:  Enabled`);
-  if (forgotPassword?.enabled) console.log(`✅ Forgot Pass:   Enabled`);
+  console.log(`[OK] Auth Mode:     ${useSession ? "Session-based" : "JWT-based"}`);
+  console.log(`[OK] Base Route:    ${route}`);
+  console.log(`[OK] Roles:         ${roles.join(", ")}`);
+  if (security?.helmet) console.log(`[OK] Security:      Helmet Enabled`);
+  if (hashing?.algorithm !== "bcrypt") console.log(`[OK] Hashing:       ${hashing.algorithm}`);
+  if (oauth && Object.keys(oauth.providers || {}).length > 0) {
+    console.log(`[OK] OAuth2:        ${Object.keys(oauth.providers).join(", ")}`);
+  }
+  if (enableDocs) console.log(`[OK] Swagger Docs:  Enabled at ${route}/docs`);
+  if (emailVerification?.enabled) console.log(`[OK] Email Verify:  Enabled`);
+  if (forgotPassword?.enabled) console.log(`[OK] Forgot Pass:   Enabled`);
   console.log("==================================================\n");
 
   // 4. Validate critical requirements
   if (!jwtSecret || typeof jwtSecret !== "string" || jwtSecret.length < 16) {
-    const error = new Error("[setupAuth] ❌ jwtSecret is required and must be a strong, non-default string (min 16 chars).");
+    const error = new Error("[setupAuth] jwtSecret is required and must be a strong, non-default string (min 16 chars).");
     await callHook(merged.hooks?.onError, { type: "setup", error });
     throw error;
   }
 
   if (!db || !db.model) {
-    const error = new Error("[setupAuth] ❌ Mongoose DB connection required.");
+    const error = new Error("[setupAuth] Mongoose DB connection required.");
     await callHook(merged.hooks?.onError, { type: "setup", error });
     throw error;
   }
 
   if (!merged.User) {
-    const error = new Error("[setupAuth] ❌ User model is required. Pass a Mongoose model or set User: 'default' to auto-generate one.");
+    const error = new Error("[setupAuth] User model is required. Pass a Mongoose model or set User: 'default' to auto-generate one.");
     await callHook(merged.hooks?.onError, { type: "setup", error });
     throw error;
   }
@@ -160,7 +182,7 @@ export async function setupAuth(app, config) {
   if (useSession && !app._sessionInitialized) {
     if (process.env.NODE_ENV === "production" && !sessionConfig.store) {
       console.warn(
-        "[light-auth] ⚠️ WARNING: No session store provided in production. Defaulting to MemoryStore, which will not persist across restarts or work in distributed environments."
+        "[light-auth] WARNING: No session store provided in production. Defaulting to MemoryStore, which will not persist across restarts or work in distributed environments."
       );
     }
     setupSession(app, jwtSecret, sessionConfig);
@@ -197,7 +219,7 @@ export async function setupAuth(app, config) {
   );
 
   // 8.3 Register route: user logout
-  logoutRoute(router, useSession, merged);
+  logoutRoute(router, useSession, merged, jwtSecret);
 
   // 9. Mount router on app
   app.use(route, router);
@@ -237,7 +259,17 @@ export async function setupAuth(app, config) {
     setupEmailRoutes(app, UserModel, merged);
   }
 
-  // 11. Export auth middleware + models
+  // 11. OAuth2 support
+  if (oauth && Object.keys(oauth.providers || {}).length > 0) {
+    setupOAuthRoutes(app, UserModel, merged);
+  }
+
+  // 12. Swagger Docs
+  if (enableDocs) {
+    setupSwaggerDocs(app, merged);
+  }
+
+  // 13. Export auth middleware + models
   return {
     auth: {
       authenticate: authenticate(useSession, jwtSecret),

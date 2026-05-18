@@ -27,16 +27,31 @@ export interface JwtConfig {
 export interface EmailVerificationConfig {
     enabled: boolean;
     requiredToLogin?: boolean;
-    sendMail?: (to: string, subject: string, html: string) => Promise<void> | void;
+    otpLength?: number;
+    otpType?: "numeric" | "alphanumeric";
+    otpExpiryMinutes?: number;
+    url?: string;
+    sendMail?: (params: EmailMessageParams) => Promise<void> | void;
 }
 
 export interface ForgotPasswordConfig {
     enabled: boolean;
-    sendMail?: (to: string, subject: string, html: string) => Promise<void> | void;
+    otpLength?: number;
+    otpType?: "numeric" | "alphanumeric";
+    otpExpiryMinutes?: number;
+    url?: string;
+    sendMail?: (params: EmailMessageParams) => Promise<void> | void;
+}
+
+export interface EmailMessageParams {
+    email: string;
+    otp: string;
+    type: "verify" | "reset" | string;
+    url?: string | null;
 }
 
 export interface HookContext {
-    type: "setup" | "register" | "login" | "logout";
+    type: "setup" | "register" | "login" | "logout" | "oauth";
     error: Error;
     req?: any;
 }
@@ -45,7 +60,36 @@ export interface HooksConfig {
     onRegister?: (user: any) => Promise<void> | void;
     onLogin?: (user: any) => Promise<object | void> | object | void;
     onLogout?: (user: any) => Promise<void> | void;
+    onVerify?: (user: any) => Promise<void> | void;
     onError?: (context: HookContext) => Promise<void> | void;
+}
+
+export interface HashingConfig {
+    /**
+     * The hashing algorithm to use for passwords.
+     * @default "bcrypt"
+     */
+    algorithm?: "bcrypt" | "argon2";
+}
+
+export interface OAuthProviderConfig {
+    clientId: string;
+    clientSecret: string;
+    authorizationUrl: string;
+    tokenUrl: string;
+    userInfoUrl: string;
+    callbackUrl: string;
+    scope?: string;
+    mapProfile?: (profile: any) => { email: string; displayName: string; avatarUrl: string };
+    onSuccess?: (req: any, res: any, context: { user: any; isNewUser: boolean; profile: any; accessToken: string }) => void;
+    successRedirect?: string;
+    failureRedirect?: string;
+}
+
+export interface OAuthConfig {
+    providers: {
+        [key: string]: OAuthProviderConfig;
+    };
 }
 
 export interface AuthConfig {
@@ -113,7 +157,7 @@ export interface AuthConfig {
     /**
      * Custom User Mongoose model. If not provided, one will be created.
      */
-    User?: Model<any>;
+    User?: Model<any> | "default";
     
     /**
      * Email verification settings.
@@ -129,6 +173,22 @@ export interface AuthConfig {
      * Lifecycle hooks.
      */
     hooks?: HooksConfig;
+
+    /**
+     * Hashing configuration for passwords.
+     */
+    hashing?: HashingConfig;
+
+    /**
+     * OAuth2 configuration for social logins.
+     */
+    oauth?: OAuthConfig;
+
+    /**
+     * Whether to expose the interactive Swagger UI docs at [route]/docs.
+     * @default true (in non-production environments)
+     */
+    enableDocs?: boolean;
 }
 
 export interface AuthMiddleware {

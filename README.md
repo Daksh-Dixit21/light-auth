@@ -6,7 +6,7 @@
 [![Languages](https://img.shields.io/github/languages/top/Daksh-Dixit21/light-auth)](https://github.com/Daksh-Dixit21/light-auth)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/dakshdixit)
 
-A lightweight, flexible, and secure authentication package for Express.js applications. It supports both session-based and JWT-based authentication, email verification, password reset, and role-based access control.
+A lightweight, flexible, and secure authentication package for Express.js applications. It supports both session-based and JWT-based authentication, email verification, password reset, **OAuth2 Social Logins**, **Argon2 Hashing**, and **Interactive FastAPI-style Docs**.
 
 ## Documentation
 
@@ -14,38 +14,47 @@ For full documentation, guides, and API reference, visit our [website](https://l
 
 ## How to Get Started
 
-1.  **Installation**:
+The easiest way to get started is to use our new interactive CLI tool!
+
+1.  **Initialize Auth**:
+
+    Run the following command in the root of your Express project:
 
     ```bash
-    npm install @daksh-dev/light-auth
+    npx @daksh-dev/light-auth init
     ```
 
-2.  **Basic Usage**:
+    The CLI will ask you a few questions (JWT vs Sessions, OAuth providers, Email Verification) and automatically generate a complete, production-ready `auth.js` configuration file and a Mongoose `User` model for you!
 
-    In your main application file, import and call the `setupAuth` function.
+2.  **Mount the Router**:
+
+    Import the generated `initAuth` function into your main Express app file:
 
     ```javascript
     import express from 'express';
     import mongoose from 'mongoose';
-    import { setupAuth } from '@daksh-dev/light-auth';
+    import { initAuth } from './src/config/auth.js'; // Path from your CLI choice
 
     const app = express();
 
     // Connect to MongoDB
-    mongoose.connect('mongodb://localhost:27017/my-app');
+    await mongoose.connect('mongodb://localhost:27017/my-app');
 
-    // Setup authentication
-    setupAuth(app, {
-      db: mongoose.connection,
-      jwtSecret: 'YOUR_SUPER_SECRET_KEY_THAT_IS_LONG_AND_COMPLEX',
-      security: { helmet: true }, // Automatically sets up helmet() middleware
-      // Add other configurations here
-    });
+    // Mount Auth Router
+    const { authRouter, auth } = await initAuth();
+    app.use('/auth', authRouter);
 
     app.listen(3000, () => {
       console.log('Server is running on port 3000');
     });
     ```
+
+### Manual Installation
+If you prefer to set it up manually without the CLI:
+```bash
+npm install @daksh-dev/light-auth
+```
+See our [website](https://light-auth.netlify.app) for full manual configuration docs.
 
 ## TypeScript Support
 
@@ -113,12 +122,21 @@ Example:
 
 ## Advanced Routes
 
-These routes provide email verification and password reset functionality.
+These routes provide email verification, password reset, and OAuth2 functionality.
 
 *   **`POST /send-verification-otp`**: Sends an OTP to the user's email for verification.
 *   **`POST /verify-email`**: Verifies a user's email with an OTP.
 *   **`POST /send-forgot-otp`**: Sends an OTP to initiate a password reset.
 *   **`POST /reset-password`**: Resets the user's password using an OTP and a new password.
+
+### OAuth2 Providers
+If configured, `light-auth` exposes endpoints for standard OAuth2 flows:
+*   **`GET /oauth/:provider`**: Redirects the user to the provider's consent screen (e.g. Google, GitHub).
+*   **`GET /oauth/:provider/callback`**: Handles the code exchange, fetches the profile, and logs the user in.
+
+### Interactive Docs (Swagger UI)
+If `enableDocs: true` is set in your config, `light-auth` will automatically generate a FastAPI-style interactive Swagger UI at:
+*   **`GET /docs`**: Explore and test all your authentication endpoints directly from your browser!
 
 ## How to Configure Routes
 
@@ -141,6 +159,9 @@ setupAuth(app, {
 *   `passwordPolicy`: An object to define password strength requirements (e.g., `{ minLength: 8 }`).
 *   `emailVerification`: An object to configure email verification.
 *   `forgotPassword`: An object to configure the password reset feature.
+*   `hashing`: Configure the password hashing algorithm (`{ algorithm: 'argon2' }` or `'bcrypt'`).
+*   `oauth`: Configure OAuth2 providers (`{ providers: { google: {...} } }`).
+*   `enableDocs`: Boolean to enable the `/docs` Swagger UI endpoint.
 
 ## Default Configuration Values
 

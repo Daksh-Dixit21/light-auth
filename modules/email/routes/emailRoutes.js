@@ -2,7 +2,7 @@ import express from "express";
 import { generateOTP, isOTPValid } from "../services/otpService.js";
 import { emailValidators } from "../validators/emailValidators.js";
 import { validationResult } from "express-validator";
-import bcrypt from "bcryptjs"; 
+import { hashPassword } from "../../utils/hashUtils.js";
 
 /**
  * Internal helper for extracting clean OTP config.
@@ -46,6 +46,12 @@ export function setupEmailRoutes(app, UserModel, config) {
       if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
       const { email } = req.body;
+
+      // Security: Enforce string type to prevent NoSQL injection
+      if (typeof email !== "string") {
+        return res.status(400).json({ error: "Email must be a string." });
+      }
+
       const user = await UserModel.findOne({ email });
       if (!user) return res.status(404).json({ error: "User not found" });
 
@@ -68,6 +74,12 @@ export function setupEmailRoutes(app, UserModel, config) {
       if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
       const { email, otp } = req.body;
+
+      // Security: Enforce string type to prevent NoSQL injection
+      if (typeof email !== "string") {
+        return res.status(400).json({ error: "Email must be a string." });
+      }
+
       const user = await UserModel.findOne({ email });
       if (!user || !isOTPValid(user.emailOtp, user.emailOtpExpires, otp)) {
         return res.status(400).json({ error: "Invalid or expired OTP." });
@@ -96,6 +108,12 @@ export function setupEmailRoutes(app, UserModel, config) {
       if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
       const { email } = req.body;
+
+      // Security: Enforce string type to prevent NoSQL injection
+      if (typeof email !== "string") {
+        return res.status(400).json({ error: "Email must be a string." });
+      }
+
       const user = await UserModel.findOne({ email });
       if (!user) return res.status(404).json({ error: "User not found" });
 
@@ -118,6 +136,12 @@ export function setupEmailRoutes(app, UserModel, config) {
       if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
       const { email, otp, newPassword } = req.body;
+
+      // Security: Enforce string type to prevent NoSQL injection
+      if (typeof email !== "string") {
+        return res.status(400).json({ error: "Email must be a string." });
+      }
+
       const user = await UserModel.findOne({ email }).select("+password");
 
       if (!user || !isOTPValid(user.resetOtp, user.resetOtpExpires, otp)) {
@@ -125,7 +149,8 @@ export function setupEmailRoutes(app, UserModel, config) {
       }
 
       // 4.2.1 Hash and update password, clear OTP
-      const hashedPassword = await bcrypt.hash(newPassword, 12);
+      const algorithm = config.hashing?.algorithm || "bcrypt";
+      const hashedPassword = await hashPassword(newPassword, algorithm);
       user.password = hashedPassword;
       user.resetOtp = undefined;
       user.resetOtpExpires = undefined;
