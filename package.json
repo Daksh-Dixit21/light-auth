@@ -1,10 +1,13 @@
 {
   "name": "@daksh-dev/light-auth",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "A lightweight and flexible authentication package for Express.js (JWT & Sessions).",
   "main": "setupAuth.js",
   "types": "index.d.ts",
   "type": "module",
+  "bin": {
+    "light-auth": "./bin/init.js"
+  },
   "scripts": {
     "test": "cd test-app && pnpm test:all",
     "test:jwt": "cd test-app && pnpm test:jwt",
@@ -16,7 +19,8 @@
   "files": [
     "setupAuth.js",
     "modules/",
-    "index.d.ts"
+    "index.d.ts",
+    "bin/"
   ],
   "repository": {
     "type": "git",
@@ -43,9 +47,24 @@
     "express": "^4.19.0",
     "express-session": "^1.18.0",
     "helmet": "^7.1.0",
-    "mongoose": "^8.3.0"
+    "mongoose": "^8.3.0",
+    "argon2": "^0.40.1",
+    "swagger-ui-express": "^5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "express-session": {
+      "optional": true
+    },
+    "argon2": {
+      "optional": true
+    },
+    "swagger-ui-express": {
+      "optional": true
+    }
   },
   "dependencies": {
+    "@clack/prompts": "^0.7.0",
+    "picocolors": "^1.0.0",
     "bcryptjs": "^2.4.3",
     "debug": "^4.3.4",
     "dotenv": "^16.4.5",
